@@ -1,0 +1,54 @@
+# AJO v1.4 local/production-shaped stack.
+# For a public deployment, provide DATABASE_URL and SESSION_SECRET from a secret manager.
+services:
+  ajo:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      AJO_REPOSITORY: ${AJO_REPOSITORY:-json}
+      DATABASE_URL: ${DATABASE_URL:-}
+      AJO_AUTO_MIGRATE: ${AJO_AUTO_MIGRATE:-0}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+      AJO_HSTS: ${AJO_HSTS:-0}
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      AJO_MAX_ROOM_PLAYERS: ${AJO_MAX_ROOM_PLAYERS:-100}
+      AJO_ROOM_TTL_HOURS: ${AJO_ROOM_TTL_HOURS:-24}
+      AJO_SESSION_TTL_HOURS: ${AJO_SESSION_TTL_HOURS:-24}
+      AJO_RATE_LIMIT_WINDOW_MS: ${AJO_RATE_LIMIT_WINDOW_MS:-60000}
+      AJO_RATE_LIMIT_MAX: ${AJO_RATE_LIMIT_MAX:-60}
+      AJO_RATE_LIMIT_VOTE_MAX: ${AJO_RATE_LIMIT_VOTE_MAX:-20}
+      AJO_RATE_LIMIT_JOIN_MAX: ${AJO_RATE_LIMIT_JOIN_MAX:-15}
+    volumes:
+      - ajo_data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ajo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ajo}
+      POSTGRES_DB: ${POSTGRES_DB:-ajo}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ajo_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ajo_data:
+  ajo_pgdata:

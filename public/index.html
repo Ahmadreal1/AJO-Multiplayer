@@ -1,0 +1,318 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>AJO</title>
+<link rel="manifest" href="/manifest.json">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f9;color:#172033}
+header{background:#111827;color:#fff;text-align:center;padding:22px 16px}
+header h1{margin:0 0 6px;font-size:36px}
+.landing{min-height:calc(100vh - 120px);display:flex;align-items:center;justify-content:center;padding:22px 14px}
+.landingBox{width:min(520px,100%);background:#fff;border-radius:28px;padding:28px 20px;text-align:center;box-shadow:0 12px 45px #00000018}
+.landingSticker{width:min(260px,72vw);height:min(260px,72vw);object-fit:cover;border-radius:50%;border:7px solid #fff;box-shadow:0 12px 35px #0003;margin:4px auto 20px;display:block}
+.landingTitle{font-size:34px;font-weight:800;margin:8px 0}
+.landingText{font-size:16px;color:#64748b;margin:0 0 22px}
+.enterButton{width:min(100%,360px);font-size:18px;padding:15px 20px;border-radius:15px}
+main{max-width:960px;margin:auto;padding:16px}
+.card{background:#fff;padding:18px;border-radius:18px;margin:14px 0;box-shadow:0 5px 22px #00000012}
+input,button{font:inherit;padding:12px;border-radius:11px;border:1px solid #cbd2dc}
+input{width:min(100%,360px)}button{background:#111827;color:#fff;cursor:pointer;margin:4px}
+button.secondary{background:#64748b}button.success{background:#166534}button:disabled{cursor:not-allowed}
+.hidden{display:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px}
+.object{background:#fff;color:#172033;text-align:left;padding:9px;border:2px solid #d7dde6}
+.object.selected{border-color:#111827;box-shadow:0 0 0 3px #11182718}
+
+.object img{width:100%;height:125px;object-fit:cover;border-radius:9px;background:#e5e7eb}
+.object b{display:block;padding:8px 2px 3px}.badge{display:inline-block;background:#e5e7eb;border-radius:999px;padding:5px 9px;margin:3px}
+.notice{background:#eef2ff;padding:12px;border-radius:12px}.small{font-size:13px;color:#64748b}
+table{width:100%;border-collapse:collapse}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left}
+.actions{display:flex;flex-wrap:wrap;gap:4px}.titleRow{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#111827;color:#fff;padding:13px 18px;border-radius:12px;box-shadow:0 8px 28px #0003;opacity:0;pointer-events:none;transition:.2s;z-index:9999;max-width:min(92vw,420px);text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
+.founderCard{display:flex;align-items:center;gap:14px}.founderCard img{width:72px;height:72px;object-fit:cover;border-radius:50%;border:3px solid #e5e7eb}.founderCard strong{font-size:20px}
+</style>
+</head>
+<body>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<header>
+<h1>AJO</h1>
+<div>Created &amp; Developed by Ahmad Real · Founder &amp; Creator</div>
+</header>
+
+<main>
+
+<section id="landing" class="landing">
+  <div class="landingBox">
+    <img class="landingSticker" src="/founder-ahmad.png" alt="Ahmad Real">
+    <div class="landingTitle">AJO</div>
+    <p class="landingText">Created &amp; Developed by Ahmad Real<br>Founder &amp; Creator</p>
+    <button class="enterButton success" onclick="enterAJO()">Enter AJO</button>
+  </div>
+</section>
+
+<section id="home" class="card hidden">
+<h2>Create or Join Room</h2>
+<input id="name" placeholder="Your Name" maxlength="40" autocomplete="name">
+<br><br>
+<button onclick="createRoom()">Create Room</button>
+<hr>
+<input id="code" placeholder="Join Code" maxlength="10" autocomplete="off">
+<button onclick="joinRoom()">Join Room</button>
+<p class="small">Players can join from different devices. No player needs to be online at the same time.</p>
+</section>
+
+<section class="card founderCard">
+  <img src="/founder-ahmad.png" alt="Ahmad Real, AJO Founder and Creator">
+  <div>
+    <strong>Ahmad Real</strong>
+    <div class="small">Founder &amp; Creator of AJO</div>
+  </div>
+</section>
+
+<section id="room" class="card hidden">
+<div class="titleRow"><h2>Room <span id="roomCode"></span></h2><span id="registrationBadge"></span><span id="connectionBadge" class="badge">Connected</span></div>
+<div id="players"></div>
+<div id="hostActions" class="actions hidden">
+<strong>Confirmed Players:</strong>
+<button class="secondary" onclick="changePlayerCount(-1)">−</button>
+<span id="playerCount" class="badge">1</span>
+<button class="success" onclick="changePlayerCount(1)">+</button>
+<span class="small">Players may join and vote at different times.</span>
+</div>
+</section>
+
+<section id="vote" class="card hidden">
+<h2>Choose One Object</h2>
+<div class="notice">Numbers are hidden. You can change your selection before confirming.</div>
+<div id="objects" class="grid" style="margin-top:14px"></div>
+<div id="confirmBox" class="hidden">
+<p id="selection"></p>
+<button class="secondary" onclick="changeSelection()">Change Selection</button>
+<button onclick="confirmVote()">Confirm Vote</button>
+</div>
+</section>
+
+<section id="results" class="card hidden">
+<div class="titleRow"><h2>Public Results</h2><span id="roundStatus"></span></div>
+<div id="resultTable"></div>
+<div class="actions">
+<button onclick="downloadRecord()">Download Record</button>
+<button class="secondary" onclick="location.reload()">Home</button>
+<button id="nextRoundButton" class="success hidden" onclick="nextRound()">Start Next Round</button>
+</div>
+</section>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});</script>
+<script>
+const socket=io();
+const $=id=>document.getElementById(id);
+let appState={host:false,round:null,selected:null,code:"",playerId:localStorage.getItem("ajoPlayerId")||"",token:localStorage.getItem("ajoToken")||"",pendingJoin:false};
+
+function enterAJO(){
+  $("landing").classList.add("hidden");
+  $("home").classList.remove("hidden");
+  $("name").focus();
+}
+
+async function createRoom(){
+  const name=$("name").value.trim()||"Ahmad Real";
+  try{
+    const response=await fetch("/api/rooms",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({name})
+    });
+    let x={};
+    try{x=await response.json();}catch(_){}
+    if(!response.ok||!x.code){
+      throw new Error(x.error||"AJO server could not create the room.");
+    }
+    // A newly-created room must never inherit a stale room/session from localStorage.
+    appState.code=x.code;
+    appState.host=true;
+    appState.playerId=x.id||"";
+    appState.selected=null;
+    // The HTTP create request can finish before Socket.IO finishes connecting.
+    // Queue the join instead of making the user retry manually.
+    appState.pendingJoin=true;
+    if(x.token){
+      appState.token=x.token;
+      localStorage.setItem("ajoToken",x.token);
+    }else{
+      appState.token="";
+      localStorage.removeItem("ajoToken");
+    }
+    if(x.id)localStorage.setItem("ajoPlayerId",x.id);
+    $("code").value=x.code;
+    joinRoom();
+  }catch(e){
+    alert(e.message||"Unable to connect to the AJO server. Please try again.");
+  }
+}
+function joinRoom(){
+  const code=($("code").value||appState.code).trim().toUpperCase();
+  if(!code)return alert("Enter a Join Code.");
+  appState.code=code;
+  appState.pendingJoin=true;
+  if(!socket.connected){
+    if($("connectionBadge"))$("connectionBadge").textContent="Connecting…";
+    return;
+  }
+  socket.emit("join",{
+    code,
+    name:$("name").value.trim()||"Player",
+    playerId:appState.playerId||null,
+    token:appState.token||localStorage.getItem("ajoToken")||null
+  });
+}
+socket.on("joined",x=>{
+  appState.pendingJoin=false;
+  $("home").classList.add("hidden");
+  $("room").classList.remove("hidden");
+  appState.host=appState.host||x.host;
+  appState.playerId=x.id;
+  localStorage.setItem("ajoPlayerId",x.id);
+  if(x.token){appState.token=x.token;localStorage.setItem("ajoToken",x.token);}
+});
+socket.on("errorMessage",m=>alert(m));
+socket.on("connect",()=>{
+  if($("connectionBadge"))$("connectionBadge").textContent="Connected";
+  if(appState.code){
+    // Rejoin automatically after a network/server interruption.
+    // The server verifies the session token before restoring the player.
+    if(appState.playerId||appState.token) appState.pendingJoin=true;
+    if(appState.pendingJoin){
+      appState.pendingJoin=false;
+      socket.emit("join",{
+        code:appState.code,
+        name:$("name").value.trim()||"Player",
+        playerId:appState.playerId||null,
+        token:appState.token||localStorage.getItem("ajoToken")||null
+      });
+    }
+  }
+});
+socket.on("disconnect",()=>{
+  if($("connectionBadge"))$("connectionBadge").textContent="Reconnecting…";
+  if(appState.code) appState.pendingJoin=true;
+});
+socket.on("voteConfirmed",v=>showToast("Vote confirmed: "+v.object+" → Number "+v.number));
+socket.on("roomNotice",n=>showToast(n.message));
+
+socket.on("state",render);
+
+let toastTimer;
+function showToast(message){
+  const el=$("toast");
+  if(!el)return;
+  el.textContent=message;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove("show"),3200);
+}
+
+function render(r){
+  const previousRound=appState.round;
+  if(previousRound && r.round && previousRound.number===r.round.number){
+    const oldVotes=previousRound.results.length;
+    const newVotes=r.round.results.length;
+    if(newVotes>oldVotes){
+      const latest=r.round.results[r.round.results.length-1];
+      if(latest && latest.player!==($("name").value.trim()||"Player")){
+        showToast(latest.player+" confirmed a vote.");
+      }
+    }
+  }
+  appState.round=r.round;
+  $("roomCode").textContent=r.code;
+  $("playerCount").textContent=r.targetPlayerCount || r.round?.playerCount || 1;
+  $("registrationBadge").innerHTML=r.registrationOpen
+    ? "<span class='badge'>Registration Open</span>"
+    : "<span class='badge'>Registration Closed</span>";
+
+  $("players").innerHTML="<b>Players: "+r.players.length+"</b><br>"+
+    r.players.map(p=>"<span class='badge'>"+esc(p.name)+" — "+esc(p.status==="WAITING"?"NOT YET":p.status)+"</span>").join("");
+
+  if(appState.host)$("hostActions").classList.remove("hidden");
+
+  if(!r.round){
+    $("vote").classList.add("hidden");
+    $("results").classList.add("hidden");
+    return;
+  }
+
+  $("vote").classList.toggle("hidden",r.round.status!=="ACTIVE");
+  $("results").classList.remove("hidden");
+  $("roundStatus").innerHTML="<span class='badge'>Round "+r.round.number+" · "+r.round.status+"</span>";
+
+  $("objects").innerHTML=r.round.objects.map(o=>{
+    return `<button class="object"
+      onclick="selectObject('${o.id}',this)">
+      <img src="${o.image}" alt="${esc(o.name)}">
+      <b>${esc(o.name)}</b><span class='small'>Number hidden · NOT YET</span>
+    </button>`;
+  }).join("");
+
+  $("resultTable").innerHTML=
+    "<p class='small'>Confirmed votes: "+r.round.results.length+" / "+r.round.playerCount+"</p>"+
+    "<table><tr><th>Player</th><th>Object</th><th>Number</th><th>Round</th></tr>"+
+    r.round.results.map(v=>`<tr><td>${esc(v.player)}</td><td>${esc(v.object)}</td><td>${v.number}</td><td>${v.round}</td></tr>`).join("")+
+    "</table>";
+
+  $("nextRoundButton").classList.toggle("hidden",
+    !(appState.host && r.round.status==="COMPLETED"));
+}
+
+function selectObject(id,el){
+  document.querySelectorAll(".object").forEach(x=>x.classList.remove("selected"));
+  el.classList.add("selected");
+  appState.selected=id;
+  const o=appState.round.objects.find(x=>x.id===id);
+  $("selection").textContent="Selected: "+o.name;
+  $("confirmBox").classList.remove("hidden");
+}
+function changeSelection(){
+  appState.selected=null;
+  $("confirmBox").classList.add("hidden");
+  document.querySelectorAll(".object").forEach(x=>x.classList.remove("selected"));
+}
+function confirmVote(){
+  if(appState.selected)socket.emit("confirmVote",appState.selected);
+}
+function nextRound(){
+  socket.emit("nextRound");
+}
+
+function changePlayerCount(delta){
+  const current=Number($("playerCount").textContent)||1;
+  const next=Math.max(1,Math.min(20,current+delta));
+  if(next!==current)socket.emit("setPlayerCount",next);
+}
+
+function downloadRecord(){
+  if(!appState.round)return;
+  const rows=[
+    ["AJO Public Record"],
+    ["Created & Developed by Ahmad Real"],
+    ["Round",appState.round.number],
+    ["Player","Object","Number","Round","Time"],
+    ...appState.round.results.map(v=>[v.player,v.object,v.number,v.round,v.time||""])
+  ];
+  const csv=rows.map(row=>row.map(csvCell).join(",")).join("\\n");
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="AJO-Round-"+appState.round.number+"-Record.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function csvCell(v){return '"'+String(v).replaceAll('"','""')+'"'}
+function esc(v){return String(v).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+</script>
+</body>
+</html>

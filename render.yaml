@@ -1,0 +1,63 @@
+services:
+  - type: web
+    name: ajo-multiplayer
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: "3000"
+
+      - key: AJO_REPOSITORY
+        value: postgres
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ajo-db
+          property: connectionString
+
+      - key: AJO_AUTO_MIGRATE
+        value: "1"
+
+      - key: SESSION_SECRET
+        generateValue: true
+
+      - key: TRUST_PROXY
+        value: "1"
+
+      - key: AJO_HSTS
+        value: "1"
+
+      - key: AJO_MAX_ROOM_PLAYERS
+        value: "100"
+
+      - key: AJO_ROOM_TTL_HOURS
+        value: "24"
+
+      - key: AJO_SESSION_TTL_HOURS
+        value: "24"
+
+      - key: AJO_RATE_LIMIT_WINDOW_MS
+        value: "60000"
+
+      - key: AJO_RATE_LIMIT_MAX
+        value: "60"
+
+      - key: AJO_RATE_LIMIT_VOTE_MAX
+        value: "20"
+
+      - key: AJO_RATE_LIMIT_JOIN_MAX
+        value: "15"
+
+databases:
+  - name: ajo-db
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "16"

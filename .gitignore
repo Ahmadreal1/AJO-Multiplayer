@@ -1,0 +1,23 @@
+node_modules/
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+npm-debug.log*
+ajo-server.log
+
+data/*.json
+data/*.tmp
+
+.DS_Store
+*.swp
+*.swo
+
+# Runtime
+.ajo-server.pid
+
+# Local backup files
+*.backup
+*.before-*
+*.bak

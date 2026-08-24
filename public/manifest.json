@@ -1,0 +1,11 @@
+{
+  "name": "AJO Multiplayer",
+  "short_name": "AJO",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#111827",
+  "icons": [],
+  "version": "0.4.0",
+  "description": "AJO Multiplayer voting application"
+}
