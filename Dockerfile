@@ -19,7 +19,6 @@ RUN if [ -f package-lock.json ]; then \
 COPY server.js ./
 COPY server ./server
 COPY public ./public
-COPY data ./data
 COPY scripts ./scripts
 COPY docs ./docs
 COPY .env.example ./.env.example
